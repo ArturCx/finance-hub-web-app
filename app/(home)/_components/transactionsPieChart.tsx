@@ -60,11 +60,11 @@ const TransactionsPieChart = ({
     },
   ];
   return (
-    <Card className="flex flex-col p-6">
-      <CardContent className="flex-1 pb-0">
+    <Card className="flex flex-col p-4 md:p-6 animate-fade-in-up animation-delay-200">
+      <CardContent className="flex-1 pb-0 px-0 md:px-2">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px] min-w-[300px]"
+          className="mx-auto aspect-square max-h-[250px] w-full min-w-0 sm:min-w-[280px]"
         >
           <PieChart>
             <ChartTooltip
@@ -76,6 +76,9 @@ const TransactionsPieChart = ({
               dataKey="amount"
               nameKey="type"
               innerRadius={60}
+              paddingAngle={2}
+              cornerRadius={4}
+              animationDuration={800}
             />
           </PieChart>
         </ChartContainer>

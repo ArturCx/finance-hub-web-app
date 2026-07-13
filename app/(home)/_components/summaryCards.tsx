@@ -28,35 +28,40 @@ const SummaryCards = async ({
   investmentsTotal,
 }: SummaryCards) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Card 1 */}
-
-      <SummaryCard
-        icon={<WalletIcon size={16} />}
-        title="Saldo"
-        amount={balance}
-        size="large"
-      />
+      <div className="animate-fade-in-up">
+        <SummaryCard
+          icon={<WalletIcon size={16} />}
+          title="Saldo"
+          amount={balance}
+          size="large"
+        />
+      </div>
 
       {/* Outros cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        <div className="flex-columns-1 items-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+        <div className="animate-fade-in-up animation-delay-100">
           <SummaryCard
             icon={<PiggyBankIcon size={16} />}
             title="Investido"
             amount={investmentsTotal}
           />
         </div>
-        <SummaryCard
-          icon={<TrendingUpIcon size={16} className="text-primary" />}
-          title="Receita"
-          amount={depositsTotal}
-        />
-        <SummaryCard
-          icon={<TrendingDownIcon size={16} className="text-red-500" />}
-          title="Despesas"
-          amount={expensesTotal}
-        />
+        <div className="animate-fade-in-up animation-delay-200">
+          <SummaryCard
+            icon={<TrendingUpIcon size={16} className="text-primary" />}
+            title="Receita"
+            amount={depositsTotal}
+          />
+        </div>
+        <div className="animate-fade-in-up animation-delay-300">
+          <SummaryCard
+            icon={<TrendingDownIcon size={16} className="text-red-500" />}
+            title="Despesas"
+            amount={expensesTotal}
+          />
+        </div>
       </div>
       <InvestmentGoalProgress investmentsTotal={investmentsTotal} />
     </div>

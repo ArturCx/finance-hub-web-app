@@ -57,11 +57,11 @@ const TransactionsPage = async ({
   return (
     <>
       <Navbar />
-      <div className="space-y-6 p-4 md:p-6 flex h-full flex-col max-h-screen overflow-hidden">
+      <div className="space-y-4 md:space-y-6 p-4 md:p-6 flex flex-1 min-h-0 flex-col overflow-hidden">
         {/* Título e botão */}
-        <div className="flex flex-col sm:flex-row w-full items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between gap-3 md:gap-4 animate-fade-in">
           <h1 className="text-xl md:text-2xl font-bold">Transações</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <AddTransactionButton />
             <DeleteTransactionsByMonthButton
               month={resolved.month}
@@ -70,7 +70,7 @@ const TransactionsPage = async ({
             />
           </div>
         </div>
-        <ScrollArea className="h-full">
+        <ScrollArea className="h-full animate-fade-in-up animation-delay-100">
           <DataTable
             columns={transactionColumns}
             data={JSON.parse(JSON.stringify(transactions))}
