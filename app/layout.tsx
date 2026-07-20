@@ -12,8 +12,11 @@ const mulish = Mulish({
 export const metadata: Metadata = {
   title: "Finance Hub",
   description: "Seu controle financeiro completo e inteligente",
+  // Ícones servidos de public/icons (não pela convenção app/icon.png):
+  // favicon transparente + apple-touch com fundo sólido da marca.
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icons/icon.png",
+    apple: "/icons/apple-icon.png",
   },
 };
 
