@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { db } from "@/app/_lib/prisma";
 
-const prisma = new PrismaClient();
+const prisma = db;
 
 export async function GET(request: NextRequest) {
   try {
-    // Extrai os parâmetros da URL e converte para números
     const page = parseInt(request.nextUrl.searchParams.get("page") || "1", 10);
     const limit = parseInt(
       request.nextUrl.searchParams.get("limit") || "10",
       10
     );
 
-    // Verifica se os parâmetros são válidos
     const offset = page > 0 && limit > 0 ? (page - 1) * limit : 0;
 
-    // Busca gráficos do banco de dados com paginação
     const [charts, total] = await prisma.$transaction([
       prisma.cryptoCharts.findMany({
         skip: offset,
@@ -37,7 +34,5 @@ export async function GET(request: NextRequest) {
       { message: "Erro ao buscar gráficos com paginação", error },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

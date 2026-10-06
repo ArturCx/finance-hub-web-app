@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { db } from "@/app/_lib/prisma";
 import { Resend } from "resend";
 import { EmailTemplate } from "./emailTemplate";
 import { getAuth } from "@clerk/nextjs/server";
 
-const prisma = new PrismaClient();
+const prisma = db;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
@@ -52,7 +52,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Envia os e-mails usando o template React
     for (const bill of billsDueSoon) {
       const emailContent = EmailTemplate({
         firstName: userName,
@@ -78,7 +77,5 @@ export async function POST(req: NextRequest) {
       { error: "Erro ao enviar lembretes." },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

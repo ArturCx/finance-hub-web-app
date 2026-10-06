@@ -32,46 +32,66 @@ export const getDashboard = async (month: string, year: string) => {
     },
   };
 
-  const depositsTotal = Number(
-    (
-      await db.transaction.aggregate({
-        where: { ...where, type: "DEPOSIT" },
-        _sum: { amount: true },
-      })
-    )?._sum?.amount
-  );
-  const investmentsTotal = Number(
-    (
-      await db.transaction.aggregate({
-        where: { ...where, type: "INVESTMENT" },
-        _sum: { amount: true },
-      })
-    )?._sum?.amount
-  );
-  const expensesTotal = Number(
-    (
-      await db.transaction.aggregate({
-        where: { ...where, type: "EXPENSE" },
-        _sum: { amount: true },
-      })
-    )?._sum?.amount
-  );
-  const paidBillsTotal = Number(
-    (
-      await db.bills.aggregate({
-        where: paidBillsWhere,
-        _sum: { amount: true },
-      })
-    )?._sum?.amount
-  );
-
-  const [openInvoices, settings] = await Promise.all([
+  const [
+    totalsPerType,
+    paidBills,
+    transactionExpensesPerCategory,
+    paidBillsPerCategory,
+    lastTransactions,
+    monthlyTransactions,
+    monthlyPaidBills,
+    openInvoices,
+    settings,
+  ] = await Promise.all([
+    db.transaction.groupBy({
+      by: ["type"],
+      where,
+      _sum: { amount: true },
+    }),
+    db.bills.aggregate({
+      where: paidBillsWhere,
+      _sum: { amount: true },
+    }),
+    db.transaction.groupBy({
+      by: ["category"],
+      where: { ...where, type: TransactionType.EXPENSE },
+      _sum: { amount: true },
+    }),
+    db.bills.groupBy({
+      by: ["category"],
+      where: paidBillsWhere,
+      _sum: { amount: true },
+    }),
+    db.transaction.findMany({
+      where,
+      orderBy: { date: "desc" },
+      take: 15,
+    }),
+    db.transaction.findMany({
+      where: {
+        ...where,
+        type: { in: [TransactionType.DEPOSIT, TransactionType.EXPENSE] },
+      },
+      select: { date: true, amount: true, type: true },
+    }),
+    db.bills.findMany({
+      where: paidBillsWhere,
+      select: { expireDate: true, amount: true },
+    }),
     db.creditCard.aggregate({
       where: { userId },
       _sum: { currentAmount: true },
     }),
     getUserSettings(userId),
   ]);
+
+  const getTypeTotal = (type: TransactionType) =>
+    Number(totalsPerType.find((item) => item.type === type)?._sum.amount ?? 0);
+  const depositsTotal = getTypeTotal(TransactionType.DEPOSIT);
+  const investmentsTotal = getTypeTotal(TransactionType.INVESTMENT);
+  const expensesTotal = getTypeTotal(TransactionType.EXPENSE);
+  const paidBillsTotal = Number(paidBills._sum.amount ?? 0);
+
   const openInvoicesTotal = Number(openInvoices._sum.currentAmount ?? 0);
   const now = new Date();
   const isCurrentMonth = startDate <= now && now < endDate;
@@ -98,25 +118,6 @@ export const getDashboard = async (month: string, year: string) => {
     ),
   };
 
-  const transactionExpensesPerCategory = await db.transaction.groupBy({
-    by: ["category"],
-    where: {
-      ...where,
-      type: TransactionType.EXPENSE,
-    },
-    _sum: {
-      amount: true,
-    },
-  });
-
-  const paidBillsPerCategory = await db.bills.groupBy({
-    by: ["category"],
-    where: paidBillsWhere,
-    _sum: {
-      amount: true,
-    },
-  });
-
   const expenseCategoryTotals = new Map<TransactionCategory, number>();
 
   transactionExpensesPerCategory.forEach((item) => {
@@ -138,34 +139,6 @@ export const getDashboard = async (month: string, year: string) => {
     percentageOfTotal:
       totalExpenses > 0 ? Math.round((totalAmount / totalExpenses) * 100) : 0,
   }));
-
-  const lastTransactions = await db.transaction.findMany({
-    where,
-    orderBy: { date: "desc" },
-    take: 15,
-  });
-
-  const monthlyTransactions = await db.transaction.findMany({
-    where: {
-      ...where,
-      type: {
-        in: [TransactionType.DEPOSIT, TransactionType.EXPENSE],
-      },
-    },
-    select: {
-      date: true,
-      amount: true,
-      type: true,
-    },
-  });
-
-  const monthlyPaidBills = await db.bills.findMany({
-    where: paidBillsWhere,
-    select: {
-      expireDate: true,
-      amount: true,
-    },
-  });
 
   const weeklyTransactions: WeeklyTransactionTotals[] = [
     { week: "Semana 1", deposits: 0, expenses: 0 },

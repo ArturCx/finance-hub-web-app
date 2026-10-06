@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { db } from "@/app/_lib/prisma";
 
 export const revalidate = 0;
 
-const prisma = new PrismaClient();
+const prisma = db;
 const delay = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
-const maxRequestsPerMinute = 30; // Limite de 30 por minuto
-const requestInterval = Math.ceil((60 / maxRequestsPerMinute) * 1000); // Tempo entre requisições
+const maxRequestsPerMinute = 30;
+const requestInterval = Math.ceil((60 / maxRequestsPerMinute) * 1000);
 
 const marketChartBaseUrl =
   "https://api.coingecko.com/api/v3/coins/{id}/market_chart?vs_currency=brl&days=365&precision=1";
@@ -34,13 +34,10 @@ export async function GET(req: NextRequest) {
   };
 
   try {
-    // Consulta a API externa para informações gerais
     const response = await fetch(url, options);
     const data = await response.json();
 
-    // Atualiza as moedas no banco
     for (const crypto of data) {
-      // Atualiza os dados gerais das moedas
       await prisma.cryptos.upsert({
         where: { externalId: crypto.id },
         create: {
@@ -64,7 +61,6 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      // Requisição para os dados de Market Chart
       const marketChartUrl = marketChartBaseUrl.replace("{id}", crypto.id);
       try {
         const marketChartResponse = await fetch(marketChartUrl, marketOptions);
@@ -93,7 +89,6 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      // Atraso entre as requisições
       await delay(requestInterval);
     }
 
@@ -106,7 +101,5 @@ export async function GET(req: NextRequest) {
       { message: "Failed to update database", error: err },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

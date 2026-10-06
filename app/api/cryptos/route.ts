@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma, PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { Prisma } from "@prisma/client";
+import { db as prisma } from "@/app/_lib/prisma";
 
 interface Params {
   page: number;
@@ -21,14 +20,13 @@ export async function GET(request: NextRequest) {
       ...(search && { name: { contains: search, mode: "insensitive" } }),
     };
 
-    // Busca e ordena os dados do banco de dados, incluindo os gráficos
     const [cryptos, total] = await prisma.$transaction([
       prisma.cryptos.findMany({
         orderBy: {
-          marketCapRank: "asc", // Ordena por marketCapRank em ordem crescente
+          marketCapRank: "asc",
         },
         include: {
-          charts: true, // Inclui os dados do relacionamento com CryptoCharts
+          charts: true,
         },
         take: limit,
         skip: (page - 1) * limit,
@@ -47,7 +45,5 @@ export async function GET(request: NextRequest) {
       { message: "Erro ao buscar criptomoedas com gráficos", error },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
