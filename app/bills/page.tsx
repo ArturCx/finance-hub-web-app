@@ -13,6 +13,8 @@ import {
   isValidYear,
 } from "../_utils/monthYearFilter";
 import DeleteBillsByMonthButton from "./_components/deleteBillsByMonthButton";
+import PageHeader from "../_components/pageHeader";
+import { ReceiptTextIcon } from "lucide-react";
 
 interface BillsPageProps {
   searchParams: {
@@ -57,18 +59,18 @@ const BillsPage = async ({ searchParams: { month, year } }: BillsPageProps) => {
     <>
       <Navbar />
       <div className="space-y-4 md:space-y-6 p-4 md:p-6 flex flex-1 min-h-0 flex-col overflow-hidden">
-        {/* Título e botão */}
-        <div className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between gap-3 md:gap-4 animate-fade-in">
-          <h1 className="text-xl md:text-2xl font-bold">Contas</h1>
-          <div className="flex flex-wrap items-center gap-2">
-            <AddBillButton />
-            <DeleteBillsByMonthButton
-              month={resolved.month}
-              year={resolved.year}
-              totalCount={bills.length}
-            />
-          </div>
-        </div>
+        <PageHeader
+          title="Contas"
+          description="Contas a pagar e seus vencimentos no mês."
+          icon={<ReceiptTextIcon />}
+        >
+          <AddBillButton />
+          <DeleteBillsByMonthButton
+            month={resolved.month}
+            year={resolved.year}
+            totalCount={bills.length}
+          />
+        </PageHeader>
         <ScrollArea className="h-full animate-fade-in-up animation-delay-100">
           <DataTable
             columns={billColumns}

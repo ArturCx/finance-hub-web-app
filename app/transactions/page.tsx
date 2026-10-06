@@ -13,6 +13,8 @@ import {
   isValidYear,
 } from "../_utils/monthYearFilter";
 import DeleteTransactionsByMonthButton from "./_components/deleteTransactionsByMonthButton";
+import PageHeader from "../_components/pageHeader";
+import { ArrowDownUpIcon } from "lucide-react";
 
 interface TransactionsPageProps {
   searchParams: {
@@ -58,18 +60,18 @@ const TransactionsPage = async ({
     <>
       <Navbar />
       <div className="space-y-4 md:space-y-6 p-4 md:p-6 flex flex-1 min-h-0 flex-col overflow-hidden">
-        {/* Título e botão */}
-        <div className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between gap-3 md:gap-4 animate-fade-in">
-          <h1 className="text-xl md:text-2xl font-bold">Transações</h1>
-          <div className="flex flex-wrap items-center gap-2">
-            <AddTransactionButton />
-            <DeleteTransactionsByMonthButton
-              month={resolved.month}
-              year={resolved.year}
-              totalCount={transactions.length}
-            />
-          </div>
-        </div>
+        <PageHeader
+          title="Transações"
+          description="Todas as entradas, saídas e investimentos do mês."
+          icon={<ArrowDownUpIcon />}
+        >
+          <AddTransactionButton />
+          <DeleteTransactionsByMonthButton
+            month={resolved.month}
+            year={resolved.year}
+            totalCount={transactions.length}
+          />
+        </PageHeader>
         <ScrollArea className="h-full animate-fade-in-up animation-delay-100">
           <DataTable
             columns={transactionColumns}

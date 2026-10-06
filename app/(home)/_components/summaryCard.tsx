@@ -19,12 +19,12 @@ const SummaryCard = ({
     <Card
       className={
         size === "large"
-          ? "bg-gradient-to-br from-primary/15 via-card to-card border-primary/20"
+          ? "relative overflow-hidden border-primary/25 bg-gradient-to-br from-primary/20 via-primary/[0.04] to-transparent"
           : ""
       }
     >
       <CardHeader className="flex-row items-center gap-2 md:gap-3 pb-2 md:pb-4">
-        <div className="flex items-center justify-center rounded-lg bg-white bg-opacity-[5%] p-2">
+        <div className="flex items-center justify-center rounded-lg bg-white/[0.05] p-2 ring-1 ring-white/[0.06]">
           {icon}
         </div>
         <p

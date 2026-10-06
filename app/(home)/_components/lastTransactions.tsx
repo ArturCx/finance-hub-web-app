@@ -28,7 +28,7 @@ const LastTransactions = ({ lastTransactions }: LastTransactionsProps) => {
     return "-";
   };
   return (
-    <ScrollArea className="rounded-xl border bg-card min-h-[200px] animate-fade-in-up animation-delay-200 transition-colors duration-300 hover:border-primary/30">
+    <ScrollArea className="rounded-2xl border border-white/[0.07] bg-white/[0.025] backdrop-blur-xl shadow-xl shadow-black/20 min-h-[200px] animate-fade-in-up animation-delay-200 transition-colors duration-300 hover:border-primary/30">
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle className="font-bold">Últimas Transações</CardTitle>
         <Button

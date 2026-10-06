@@ -12,7 +12,7 @@ const ExpensesPerCategory = ({
   expensesPerCategory,
 }: ExpensesPerCategoryProps) => {
   return (
-    <ScrollArea className="col-span-2 h-full min-h-[180px] rounded-xl border bg-card pb-6 animate-fade-in-up animation-delay-300 transition-colors duration-300 hover:border-primary/30">
+    <ScrollArea className="col-span-2 h-full min-h-[180px] rounded-2xl border border-white/[0.07] bg-white/[0.025] backdrop-blur-xl shadow-xl shadow-black/20 pb-6 animate-fade-in-up animation-delay-300 transition-colors duration-300 hover:border-primary/30">
       <CardHeader>
         <CardTitle className="font-bold">Gastos por Categoria</CardTitle>
       </CardHeader>

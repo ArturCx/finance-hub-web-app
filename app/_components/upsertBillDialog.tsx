@@ -3,11 +3,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
 } from "./ui/dialog";
 import {
   Form,
@@ -29,7 +25,6 @@ import {
 import {
   BILL_CATEGORY_OPTIONS,
   BILL_PAYMENT_METHOD_OPTIONS,
-  BILL_STATUS_OPTIONS,
 } from "../_constants/bills";
 import { DatePicker } from "./ui/datePicker";
 import { z } from "zod";
@@ -37,6 +32,39 @@ import { BillStatus, BillCategory, BillPaymentMethod } from "@prisma/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { upsertBill } from "../_actions/upsertBill";
+import {
+  AlertCircleIcon,
+  CheckCircle2Icon,
+  CircleDashedIcon,
+  Loader2Icon,
+  ReceiptTextIcon,
+} from "lucide-react";
+import { toast } from "sonner";
+import FormDialogHeader from "./formDialogHeader";
+import { OptionCard, OptionCards } from "./optionCards";
+
+const STATUS_OPTIONS: OptionCard<BillStatus>[] = [
+  {
+    value: BillStatus.PAYABLE,
+    label: "Aberta",
+    icon: CircleDashedIcon,
+    activeClassName: "border-white/50 bg-white/10 text-white shadow-white/10",
+  },
+  {
+    value: BillStatus.PAID,
+    label: "Paga",
+    icon: CheckCircle2Icon,
+    activeClassName:
+      "border-primary/60 bg-primary/15 text-primary shadow-primary/20",
+  },
+  {
+    value: BillStatus.EXPIRED,
+    label: "Vencida",
+    icon: AlertCircleIcon,
+    activeClassName:
+      "border-danger/60 bg-danger/15 text-danger shadow-danger/20",
+  },
+];
 
 interface UpsertBillDialogProps {
   isOpen: boolean;
@@ -92,17 +120,19 @@ const UpsertBillDialog = ({
     defaultValues: formDefaultValues,
   });
 
+  const isUpdate = Boolean(billId);
+
   const onSubmit = async (data: FormSchema) => {
     try {
       await upsertBill({ ...data, id: billId });
+      toast.success(isUpdate ? "Conta atualizada!" : "Conta adicionada!");
       setIsOpen(false);
       form.reset();
     } catch (error) {
       console.error(error);
+      toast.error("Não foi possível salvar a conta.");
     }
   };
-
-  const isUpdate = Boolean(billId);
 
   return (
     <Dialog
@@ -114,23 +144,30 @@ const UpsertBillDialog = ({
         }
       }}
     >
-      <DialogTrigger asChild></DialogTrigger>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isUpdate ? "Atualizar" : "Criar"} conta</DialogTitle>
-          <DialogDescription>Insira as informações abaixo</DialogDescription>
-        </DialogHeader>
+        <FormDialogHeader
+          icon={<ReceiptTextIcon />}
+          title={isUpdate ? "Editar conta" : "Nova conta"}
+          description="Cadastre uma conta para acompanhar o vencimento."
+        />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-8">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="relative space-y-5"
+          >
             <FormField
               control={form.control}
-              name="name"
+              name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome</FormLabel>
                   <FormControl>
-                    <Input placeholder="Digite o nome..." {...field} />
+                    <OptionCards
+                      aria-label="Status da conta"
+                      options={STATUS_OPTIONS}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -144,7 +181,8 @@ const UpsertBillDialog = ({
                   <FormLabel>Valor</FormLabel>
                   <FormControl>
                     <MoneyInput
-                      placeholder="Digite o valor..."
+                      placeholder="R$ 0,00"
+                      className="h-14 text-2xl font-bold tabular-nums md:text-2xl"
                       value={field.value}
                       onValueChange={({ floatValue }) =>
                         field.onChange(floatValue)
@@ -159,88 +197,81 @@ const UpsertBillDialog = ({
             />
             <FormField
               control={form.control}
-              name="status"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger
-                        className={field.value ? "text-white" : "text-muted-foreground"}
-                      >
-                        <SelectValue placeholder="Selecione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {BILL_STATUS_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Nome</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex.: Conta de luz, aluguel..." {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger
-                        className={field.value ? "text-white" : "text-muted-foreground"}
-                      >
-                        <SelectValue placeholder="Selecione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {BILL_CATEGORY_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="paymentMethod"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Método de pagamento</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger
-                        className={field.value ? "text-white" : "text-muted-foreground"}
-                      >
-                        <SelectValue placeholder="Selecione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {BILL_PAYMENT_METHOD_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid gap-5 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger
+                          className={
+                            field.value ? "text-white" : "text-muted-foreground"
+                          }
+                        >
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {BILL_CATEGORY_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Método de pagamento</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger
+                          className={
+                            field.value ? "text-white" : "text-muted-foreground"
+                          }
+                        >
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {BILL_PAYMENT_METHOD_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="expireDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data de Vencimento</FormLabel>
+                  <FormLabel>Data de vencimento</FormLabel>
                   <DatePicker value={field.value} onChange={field.onChange} />
                   <FormMessage />
                 </FormItem>
@@ -252,8 +283,11 @@ const UpsertBillDialog = ({
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit">
-                {isUpdate ? "Atualizar" : "Adicionar"}
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting && (
+                  <Loader2Icon className="animate-spin" />
+                )}
+                {isUpdate ? "Salvar alterações" : "Adicionar conta"}
               </Button>
             </DialogFooter>
           </form>

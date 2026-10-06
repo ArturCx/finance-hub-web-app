@@ -3,11 +3,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
 } from "./ui/dialog";
 import {
   Form,
@@ -29,7 +25,6 @@ import {
 import {
   TRANSACTION_CATEGORY_OPTIONS,
   TRANSACTION_PAYMENT_METHOD_OPTIONS,
-  TRANSACTION_TYPE_OPTIONS,
 } from "../_constants/transactions";
 import { DatePicker } from "./ui/datePicker";
 import { z } from "zod";
@@ -41,6 +36,40 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { upsertTransaction } from "../_actions/upsertTransaction";
+import {
+  ArrowDownUpIcon,
+  Loader2Icon,
+  PiggyBankIcon,
+  TrendingDownIcon,
+  TrendingUpIcon,
+} from "lucide-react";
+import { toast } from "sonner";
+import FormDialogHeader from "./formDialogHeader";
+import { OptionCard, OptionCards } from "./optionCards";
+
+const TYPE_OPTIONS: OptionCard<TransactionType>[] = [
+  {
+    value: TransactionType.EXPENSE,
+    label: "Despesa",
+    icon: TrendingDownIcon,
+    activeClassName:
+      "border-danger/60 bg-danger/15 text-danger shadow-danger/20",
+  },
+  {
+    value: TransactionType.DEPOSIT,
+    label: "Depósito",
+    icon: TrendingUpIcon,
+    activeClassName:
+      "border-primary/60 bg-primary/15 text-primary shadow-primary/20",
+  },
+  {
+    value: TransactionType.INVESTMENT,
+    label: "Investimento",
+    icon: PiggyBankIcon,
+    activeClassName:
+      "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-amber-400/20",
+  },
+];
 
 interface UpsertTransactionDialogProps {
   isOpen: boolean;
@@ -96,17 +125,21 @@ const UpsertTransactionDialog = ({
     defaultValues: formDefaultValues,
   });
 
+  const isUpdate = Boolean(transactionId);
+
   const onSubmit = async (data: FormSchema) => {
     try {
       await upsertTransaction({ ...data, id: transactionId });
+      toast.success(
+        isUpdate ? "Transação atualizada!" : "Transação adicionada!",
+      );
       setIsOpen(false);
       form.reset();
     } catch (error) {
       console.error(error);
+      toast.error("Não foi possível salvar a transação.");
     }
   };
-
-  const isUpdate = Boolean(transactionId);
 
   return (
     <Dialog
@@ -118,25 +151,30 @@ const UpsertTransactionDialog = ({
         }
       }}
     >
-      <DialogTrigger asChild></DialogTrigger>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {isUpdate ? "Atualizar" : "Criar"} transação
-          </DialogTitle>
-          <DialogDescription>Insira as informações abaixo</DialogDescription>
-        </DialogHeader>
+        <FormDialogHeader
+          icon={<ArrowDownUpIcon />}
+          title={isUpdate ? "Editar transação" : "Nova transação"}
+          description="Registre uma entrada, saída ou investimento."
+        />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-8">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="relative space-y-5"
+          >
             <FormField
               control={form.control}
-              name="name"
+              name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome</FormLabel>
                   <FormControl>
-                    <Input placeholder="Digite o nome..." {...field} />
+                    <OptionCards
+                      aria-label="Tipo da transação"
+                      options={TYPE_OPTIONS}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,7 +188,8 @@ const UpsertTransactionDialog = ({
                   <FormLabel>Valor</FormLabel>
                   <FormControl>
                     <MoneyInput
-                      placeholder="Digite o valor..."
+                      placeholder="R$ 0,00"
+                      className="h-14 text-2xl font-bold tabular-nums md:text-2xl"
                       value={field.value}
                       onValueChange={({ floatValue }) =>
                         field.onChange(floatValue)
@@ -165,82 +204,75 @@ const UpsertTransactionDialog = ({
             />
             <FormField
               control={form.control}
-              name="type"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tipo</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger
-                        className={field.value ? "text-white" : "text-muted-foreground"}
-                      >
-                        <SelectValue placeholder="Selecione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {TRANSACTION_TYPE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Descrição</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex.: Supermercado, salário..." {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger
-                        className={field.value ? "text-white" : "text-muted-foreground"}
-                      >
-                        <SelectValue placeholder="Selecione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {TRANSACTION_CATEGORY_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="paymentMethod"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Método de pagamento</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger
-                        className={field.value ? "text-white" : "text-muted-foreground"}
-                      >
-                        <SelectValue placeholder="Selecione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {TRANSACTION_PAYMENT_METHOD_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid gap-5 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger
+                          className={
+                            field.value ? "text-white" : "text-muted-foreground"
+                          }
+                        >
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {TRANSACTION_CATEGORY_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Método de pagamento</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger
+                          className={
+                            field.value ? "text-white" : "text-muted-foreground"
+                          }
+                        >
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {TRANSACTION_PAYMENT_METHOD_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="date"
@@ -258,8 +290,11 @@ const UpsertTransactionDialog = ({
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit">
-                {isUpdate ? "Atualizar" : "Adicionar"}
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting && (
+                  <Loader2Icon className="animate-spin" />
+                )}
+                {isUpdate ? "Salvar alterações" : "Adicionar transação"}
               </Button>
             </DialogFooter>
           </form>

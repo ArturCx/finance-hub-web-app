@@ -10,6 +10,8 @@ import ExpensesPerCategory from "./_components/expensesPerCategory";
 import LastTransactions from "./_components/lastTransactions";
 import AiReportButton from "./_components/aiReportButton";
 import TransactionsLineChart from "./_components/transactionsLineChart";
+import PageHeader from "../_components/pageHeader";
+import { LayoutDashboardIcon } from "lucide-react";
 import {
   getResolvedMonthYear,
   isValidMonth,
@@ -43,13 +45,14 @@ const Home = async ({ searchParams: { month, year } }: HomeProps) => {
     <>
       <Navbar />
       <div className="flex flex-1 min-h-0 flex-col space-y-4 md:space-y-6 overflow-y-auto lg:overflow-hidden p-4 md:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 animate-fade-in">
-          <h1 className="text-xl md:text-2xl font-bold">Dashboard</h1>
-          <div className="flex flex-wrap items-center gap-2 md:gap-3">
-            <AiReportButton month={resolved.month} year={resolved.year} />
-            <TimeSelect />
-          </div>
-        </div>
+        <PageHeader
+          title="Dashboard"
+          description="Resumo das suas finanças no período."
+          icon={<LayoutDashboardIcon />}
+        >
+          <AiReportButton month={resolved.month} year={resolved.year} />
+          <TimeSelect />
+        </PageHeader>
         <div className="grid lg:h-full grid-cols-1 lg:grid-cols-[2fr,1fr] gap-4 md:gap-6 lg:overflow-hidden">
           <div className="flex flex-col gap-4 md:gap-6 lg:overflow-hidden">
             <SummaryCards month={resolved.month} {...dashboard} />
