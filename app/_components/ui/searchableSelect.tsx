@@ -4,6 +4,7 @@ import * as React from "react";
 import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { normalizeSearch as normalize } from "@/app/_utils/search";
 
 export interface SearchableSelectOption<T extends string = string> {
   value: T;
@@ -22,13 +23,6 @@ interface SearchableSelectProps<T extends string>
   searchPlaceholder?: string;
   emptyText?: string;
 }
-
-const normalize = (text: string) =>
-  text
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
 
 const SearchableSelectInner = <T extends string>(
   {

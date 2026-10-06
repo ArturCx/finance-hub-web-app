@@ -1,7 +1,4 @@
 import { db } from "../_lib/prisma";
-import { DataTable } from "../_components/ui/dataTable";
-import { transactionColumns } from "./_columns";
-import { ScrollArea } from "@/app/_components/ui/scroll-area";
 import AddTransactionButton from "../_components/addTransactionButton";
 import Navbar from "../_components/navbar";
 import { auth } from "@clerk/nextjs/server";
@@ -14,7 +11,7 @@ import {
 } from "../_utils/monthYearFilter";
 import DeleteTransactionsByMonthButton from "./_components/deleteTransactionsByMonthButton";
 import PageHeader from "../_components/pageHeader";
-import TransactionsMobileList from "./_components/transactionsMobileList";
+import TransactionsView from "./_components/transactionsView";
 import { ArrowDownUpIcon } from "lucide-react";
 
 interface TransactionsPageProps {
@@ -73,15 +70,7 @@ const TransactionsPage = async ({
             totalCount={transactions.length}
           />
         </PageHeader>
-        <div className="animate-fade-in-up animation-delay-100 md:hidden">
-          <TransactionsMobileList transactions={JSON.parse(JSON.stringify(transactions))} />
-        </div>
-        <ScrollArea className="hidden h-full animate-fade-in-up animation-delay-100 md:block">
-          <DataTable
-            columns={transactionColumns}
-            data={JSON.parse(JSON.stringify(transactions))}
-          />
-        </ScrollArea>
+        <TransactionsView transactions={JSON.parse(JSON.stringify(transactions))} />
       </div>
     </>
   );

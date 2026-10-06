@@ -11,11 +11,19 @@ import DeleteBillButton from "./deleteBillButton";
 import EditBillButton from "./editBillButton";
 import BillStatusBadge from "./typeBadge";
 
-const BillsMobileList = ({ bills }: { bills: Bills[] }) => {
+interface BillsMobileListProps {
+  bills: Bills[];
+  emptyMessage?: string;
+}
+
+const BillsMobileList = ({
+  bills,
+  emptyMessage = "Nenhuma conta neste mês.",
+}: BillsMobileListProps) => {
   if (bills.length === 0) {
     return (
       <p className="rounded-2xl border border-white/[0.07] bg-white/[0.02] py-12 text-center text-sm text-muted-foreground">
-        Nenhuma conta neste mês.
+        {emptyMessage}
       </p>
     );
   }

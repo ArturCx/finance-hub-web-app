@@ -1,7 +1,4 @@
 import Navbar from "../_components/navbar";
-import { ScrollArea } from "../_components/ui/scroll-area";
-import { DataTable } from "../_components/ui/dataTable";
-import { billColumns } from "./_columns";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import AddBillButton from "../_components/addBillButton";
@@ -14,7 +11,7 @@ import {
 } from "../_utils/monthYearFilter";
 import DeleteBillsByMonthButton from "./_components/deleteBillsByMonthButton";
 import PageHeader from "../_components/pageHeader";
-import BillsMobileList from "./_components/billsMobileList";
+import BillsView from "./_components/billsView";
 import { ReceiptTextIcon } from "lucide-react";
 
 interface BillsPageProps {
@@ -72,15 +69,7 @@ const BillsPage = async ({ searchParams: { month, year } }: BillsPageProps) => {
             totalCount={bills.length}
           />
         </PageHeader>
-        <div className="animate-fade-in-up animation-delay-100 md:hidden">
-          <BillsMobileList bills={JSON.parse(JSON.stringify(bills))} />
-        </div>
-        <ScrollArea className="hidden h-full animate-fade-in-up animation-delay-100 md:block">
-          <DataTable
-            columns={billColumns}
-            data={JSON.parse(JSON.stringify(bills))}
-          />
-        </ScrollArea>
+        <BillsView bills={JSON.parse(JSON.stringify(bills))} />
       </div>
     </>
   );

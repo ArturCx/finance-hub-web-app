@@ -32,11 +32,19 @@ const TYPE_STYLES = {
   },
 };
 
-const TransactionsMobileList = ({ transactions }: { transactions: Transaction[] }) => {
+interface TransactionsMobileListProps {
+  transactions: Transaction[];
+  emptyMessage?: string;
+}
+
+const TransactionsMobileList = ({
+  transactions,
+  emptyMessage = "Nenhuma transação neste mês.",
+}: TransactionsMobileListProps) => {
   if (transactions.length === 0) {
     return (
       <p className="rounded-2xl border border-white/[0.07] bg-white/[0.02] py-12 text-center text-sm text-muted-foreground">
-        Nenhuma transação neste mês.
+        {emptyMessage}
       </p>
     );
   }
