@@ -10,15 +10,33 @@ export const BILL_PAYMENT_METHOD_ICONS = {
   [BillPaymentMethod.OTHER]: "other.svg",
 };
 
-export const BILL_CATEGORY_LABELS = {
+export const BILL_CATEGORY_LABELS: Record<BillCategory, string> = {
+  DEBT: "Empréstimos e financiamentos",
+  DINING: "Restaurantes e delivery",
   EDUCATION: "Educação",
   ENTERTAINMENT: "Entretenimento",
+  FITNESS: "Academia e esportes",
   FOOD: "Alimentação",
+  FREELANCE: "Freelance / renda extra",
+  GIFTS: "Presentes e doações",
+  GROCERIES: "Mercado",
   HEALTH: "Saúde",
   HOUSING: "Moradia",
+  INSURANCE: "Seguros",
+  INVESTMENT_INCOME: "Rendimentos",
+  KIDS: "Filhos",
   OTHER: "Outros",
+  PERSONAL_CARE: "Cuidados pessoais",
+  PETS: "Pets",
+  REFUND: "Reembolsos",
   SALARY: "Salário",
+  SALES: "Vendas",
+  SHOPPING: "Compras",
+  SUBSCRIPTIONS: "Assinaturas",
+  TAXES: "Impostos e taxas",
+  TELECOM: "Internet e telefone",
   TRANSPORTATION: "Transporte",
+  TRAVEL: "Viagens",
   UTILITY: "Utilidades",
 };
 
@@ -78,41 +96,14 @@ export const BILL_PAYMENT_METHOD_OPTIONS = [
   },
 ];
 
-export const BILL_CATEGORY_OPTIONS = [
-  {
-    value: BillCategory.EDUCATION,
-    label: BILL_CATEGORY_LABELS[BillCategory.EDUCATION],
-  },
-  {
-    value: BillCategory.ENTERTAINMENT,
-    label: BILL_CATEGORY_LABELS[BillCategory.ENTERTAINMENT],
-  },
-  {
-    value: BillCategory.FOOD,
-    label: BILL_CATEGORY_LABELS[BillCategory.FOOD],
-  },
-  {
-    value: BillCategory.HEALTH,
-    label: BILL_CATEGORY_LABELS[BillCategory.HEALTH],
-  },
-  {
-    value: BillCategory.HOUSING,
-    label: BILL_CATEGORY_LABELS[BillCategory.HOUSING],
-  },
-  {
-    value: BillCategory.OTHER,
-    label: BILL_CATEGORY_LABELS[BillCategory.OTHER],
-  },
-  {
-    value: BillCategory.SALARY,
-    label: BILL_CATEGORY_LABELS[BillCategory.SALARY],
-  },
-  {
-    value: BillCategory.TRANSPORTATION,
-    label: BILL_CATEGORY_LABELS[BillCategory.TRANSPORTATION],
-  },
-  {
-    value: BillCategory.UTILITY,
-    label: BILL_CATEGORY_LABELS[BillCategory.UTILITY],
-  },
-];
+export const BILL_CATEGORY_OPTIONS = (
+  Object.keys(BILL_CATEGORY_LABELS) as BillCategory[]
+)
+  .map((value) => ({ value, label: BILL_CATEGORY_LABELS[value] }))
+  .sort((a, b) =>
+    a.value === BillCategory.OTHER
+      ? 1
+      : b.value === BillCategory.OTHER
+        ? -1
+        : a.label.localeCompare(b.label, "pt-BR"),
+  );

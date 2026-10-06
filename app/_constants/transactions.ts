@@ -14,15 +14,33 @@ export const TRANSACTION_PAYMENT_METHOD_ICONS = {
   [TransactionPaymentMethod.OTHER]: "other.svg",
 };
 
-export const TRANSACTION_CATEGORY_LABELS = {
+export const TRANSACTION_CATEGORY_LABELS: Record<TransactionCategory, string> = {
+  DEBT: "Empréstimos e financiamentos",
+  DINING: "Restaurantes e delivery",
   EDUCATION: "Educação",
   ENTERTAINMENT: "Entretenimento",
+  FITNESS: "Academia e esportes",
   FOOD: "Alimentação",
+  FREELANCE: "Freelance / renda extra",
+  GIFTS: "Presentes e doações",
+  GROCERIES: "Mercado",
   HEALTH: "Saúde",
   HOUSING: "Moradia",
+  INSURANCE: "Seguros",
+  INVESTMENT_INCOME: "Rendimentos",
+  KIDS: "Filhos",
   OTHER: "Outros",
+  PERSONAL_CARE: "Cuidados pessoais",
+  PETS: "Pets",
+  REFUND: "Reembolsos",
   SALARY: "Salário",
+  SALES: "Vendas",
+  SHOPPING: "Compras",
+  SUBSCRIPTIONS: "Assinaturas",
+  TAXES: "Impostos e taxas",
+  TELECOM: "Internet e telefone",
   TRANSPORTATION: "Transporte",
+  TRAVEL: "Viagens",
   UTILITY: "Utilidades",
 };
 
@@ -86,41 +104,14 @@ export const TRANSACTION_PAYMENT_METHOD_OPTIONS = [
   },
 ];
 
-export const TRANSACTION_CATEGORY_OPTIONS = [
-  {
-    value: TransactionCategory.EDUCATION,
-    label: TRANSACTION_CATEGORY_LABELS[TransactionCategory.EDUCATION],
-  },
-  {
-    value: TransactionCategory.ENTERTAINMENT,
-    label: TRANSACTION_CATEGORY_LABELS[TransactionCategory.ENTERTAINMENT],
-  },
-  {
-    value: TransactionCategory.FOOD,
-    label: TRANSACTION_CATEGORY_LABELS[TransactionCategory.FOOD],
-  },
-  {
-    value: TransactionCategory.HEALTH,
-    label: TRANSACTION_CATEGORY_LABELS[TransactionCategory.HEALTH],
-  },
-  {
-    value: TransactionCategory.HOUSING,
-    label: TRANSACTION_CATEGORY_LABELS[TransactionCategory.HOUSING],
-  },
-  {
-    value: TransactionCategory.OTHER,
-    label: TRANSACTION_CATEGORY_LABELS[TransactionCategory.OTHER],
-  },
-  {
-    value: TransactionCategory.SALARY,
-    label: TRANSACTION_CATEGORY_LABELS[TransactionCategory.SALARY],
-  },
-  {
-    value: TransactionCategory.TRANSPORTATION,
-    label: TRANSACTION_CATEGORY_LABELS[TransactionCategory.TRANSPORTATION],
-  },
-  {
-    value: TransactionCategory.UTILITY,
-    label: TRANSACTION_CATEGORY_LABELS[TransactionCategory.UTILITY],
-  },
-];
+export const TRANSACTION_CATEGORY_OPTIONS = (
+  Object.keys(TRANSACTION_CATEGORY_LABELS) as TransactionCategory[]
+)
+  .map((value) => ({ value, label: TRANSACTION_CATEGORY_LABELS[value] }))
+  .sort((a, b) =>
+    a.value === TransactionCategory.OTHER
+      ? 1
+      : b.value === TransactionCategory.OTHER
+        ? -1
+        : a.label.localeCompare(b.label, "pt-BR"),
+  );
