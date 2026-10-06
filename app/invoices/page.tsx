@@ -10,6 +10,8 @@ import InvoiceSummary from "./_components/invoiceSummary";
 import PaymentHistory from "./_components/paymentHistory";
 import { CreditCardView, InvoicePaymentView } from "./_types";
 import { getBillingCycle } from "./_utils/billingCycle";
+import { getUserSettings } from "../_data/getUserSettings";
+import IncludeInBalanceToggle from "./_components/includeInBalanceToggle";
 
 const InvoicesPage = async () => {
   const { userId } = await auth();
@@ -17,7 +19,7 @@ const InvoicesPage = async () => {
     redirect("/login");
   }
 
-  const [creditCards, payments] = await Promise.all([
+  const [creditCards, payments, settings] = await Promise.all([
     db.creditCard.findMany({
       where: { userId },
       orderBy: { createdAt: "asc" },
@@ -28,6 +30,7 @@ const InvoicesPage = async () => {
       take: 8,
       include: { creditCard: { select: { name: true, color: true } } },
     }),
+    getUserSettings(userId),
   ]);
 
   const cards: CreditCardView[] = creditCards
@@ -85,6 +88,15 @@ const InvoicesPage = async () => {
         ) : (
           <>
             <InvoiceSummary cards={cards} />
+            <div className="animate-fade-in-up animation-delay-100">
+              <IncludeInBalanceToggle
+                checked={settings.includeInvoicesInBalance}
+                totalOpen={cards.reduce(
+                  (sum, card) => sum + card.currentAmount,
+                  0,
+                )}
+              />
+            </div>
             <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-[1fr,360px]">
               <div className="grid grid-cols-1 gap-4 md:gap-6 2xl:grid-cols-2">
                 {cards.map((card, index) => (

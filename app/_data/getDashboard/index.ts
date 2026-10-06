@@ -7,6 +7,7 @@ import {
 } from "./types";
 import { auth } from "@clerk/nextjs/server";
 import { getMonthDateRange } from "@/app/_utils/monthYearFilter";
+import { getUserSettings } from "../getUserSettings";
 
 export const getDashboard = async (month: string, year: string) => {
   const { userId } = await auth();
@@ -64,8 +65,25 @@ export const getDashboard = async (month: string, year: string) => {
     )?._sum?.amount
   );
 
+  const [openInvoices, settings] = await Promise.all([
+    db.creditCard.aggregate({
+      where: { userId },
+      _sum: { currentAmount: true },
+    }),
+    getUserSettings(userId),
+  ]);
+  const openInvoicesTotal = Number(openInvoices._sum.currentAmount ?? 0);
+  const now = new Date();
+  const isCurrentMonth = startDate <= now && now < endDate;
+  const invoicesIncludedInBalance =
+    settings.includeInvoicesInBalance && isCurrentMonth;
+
   const totalExpenses = expensesTotal + paidBillsTotal;
-  const balance = depositsTotal - investmentsTotal - totalExpenses;
+  const balance =
+    depositsTotal -
+    investmentsTotal -
+    totalExpenses -
+    (invoicesIncludedInBalance ? openInvoicesTotal : 0);
   const transactionsTotal = depositsTotal + investmentsTotal + totalExpenses;
 
   const typesPercentage: TransactionPercentagePerType = {
@@ -182,6 +200,8 @@ export const getDashboard = async (month: string, year: string) => {
     depositsTotal,
     investmentsTotal,
     expensesTotal: totalExpenses,
+    openInvoicesTotal,
+    invoicesIncludedInBalance,
     typesPercentage,
     totalExpensePerCategory,
     weeklyTransactions,

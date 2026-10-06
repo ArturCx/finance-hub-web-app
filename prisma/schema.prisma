@@ -151,3 +151,12 @@ model InvoicePayment {
   @@index([userId])
   @@map("invoice_payments")
 }
+
+model UserSettings {
+  userId                   String   @id
+  includeInvoicesInBalance Boolean  @default(false)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@map("user_settings")
+}

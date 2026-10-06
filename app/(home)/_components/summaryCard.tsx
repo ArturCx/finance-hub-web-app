@@ -7,6 +7,7 @@ interface SummaryCardProps {
   title: string;
   amount: number;
   size?: "small" | "large";
+  hint?: ReactNode;
 }
 
 const SummaryCard = ({
@@ -14,13 +15,14 @@ const SummaryCard = ({
   title,
   amount,
   size = "small",
+  hint,
 }: SummaryCardProps) => {
   return (
     <Card
       className={
         size === "large"
           ? "relative overflow-hidden border-primary/25 bg-gradient-to-br from-primary/20 via-primary/[0.04] to-transparent"
-          : ""
+          : "h-full"
       }
     >
       <CardHeader className="flex-row items-center gap-2 md:gap-3 pb-2 md:pb-4">
@@ -45,6 +47,9 @@ const SummaryCard = ({
 
         {size === "large" && <AddTransactionButton />}
       </CardContent>
+      {hint && (
+        <p className="-mt-3 px-6 pb-5 text-xs text-muted-foreground">{hint}</p>
+      )}
     </Card>
   );
 };
