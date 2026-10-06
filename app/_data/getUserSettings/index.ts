@@ -1,10 +1,18 @@
 import { db } from "@/app/_lib/prisma";
 
-export const DEFAULT_USER_SETTINGS = {
-  includeInvoicesInBalance: false,
-};
+export interface UserSettingsView {
+  includeInvoicesInBalance: boolean;
+  investmentGoal: number | null;
+}
 
-export const getUserSettings = async (userId: string) => {
+export const getUserSettings = async (
+  userId: string,
+): Promise<UserSettingsView> => {
   const settings = await db.userSettings.findUnique({ where: { userId } });
-  return settings ?? { userId, ...DEFAULT_USER_SETTINGS };
+  return {
+    includeInvoicesInBalance: settings?.includeInvoicesInBalance ?? false,
+    investmentGoal: settings?.investmentGoal
+      ? Number(settings.investmentGoal)
+      : null,
+  };
 };

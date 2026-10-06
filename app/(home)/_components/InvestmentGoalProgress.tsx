@@ -1,83 +1,107 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
+import { PencilIcon, TargetIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/app/_components/ui/button";
 import { Progress } from "@/app/_components/ui/progress";
 import { SetInvestmentGoalDialog } from "@/app/_components/setInvestmentGoalDialog";
+import { setInvestmentGoal } from "@/app/_actions/setInvestmentGoal";
+import { formatCurrency } from "@/app/_utils/currency";
+
+const LEGACY_STORAGE_KEY = "investmentGoal";
 
 interface InvestmentGoalProgressProps {
   investmentsTotal: number;
+  investmentGoal: number | null;
 }
 
 export default function InvestmentGoalProgress({
   investmentsTotal,
+  investmentGoal,
 }: InvestmentGoalProgressProps) {
-  const [investmentGoal, setInvestmentGoal] = useState<number | null>(null);
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [, startTransition] = useTransition();
+  const [goal, setOptimisticGoal] = useOptimistic(investmentGoal);
 
   useEffect(() => {
-    const savedGoal = localStorage.getItem("investmentGoal");
-    if (savedGoal) {
-      setInvestmentGoal(parseFloat(savedGoal));
+    let legacyGoal: number | null = null;
+    try {
+      const saved = localStorage.getItem(LEGACY_STORAGE_KEY);
+      legacyGoal = saved ? parseFloat(saved) : null;
+    } catch {
+      return;
     }
-  }, []);
-
-  const handleSaveGoal = (goal: string) => {
-    const parsedGoal = parseFloat(goal);
-    if (!isNaN(parsedGoal) && parsedGoal > 0) {
-      setInvestmentGoal(parsedGoal);
-      localStorage.setItem("investmentGoal", parsedGoal.toString());
-    } else {
-      alert("Por favor, insira um valor válido para a meta de investimento.");
+    if (!legacyGoal || Number.isNaN(legacyGoal) || legacyGoal <= 0) {
+      return;
     }
-  };
+    if (investmentGoal !== null) {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return;
+    }
+    setInvestmentGoal({ goal: legacyGoal })
+      .then(() => localStorage.removeItem(LEGACY_STORAGE_KEY))
+      .catch((error) => console.error(error));
+  }, [investmentGoal]);
 
-  const progress = investmentGoal
-    ? Math.min((investmentsTotal / investmentGoal) * 100, 100)
-    : 0;
+  const handleSave = (newGoal: number | null) =>
+    new Promise<void>((resolve, reject) => {
+      startTransition(async () => {
+        setOptimisticGoal(newGoal);
+        try {
+          await setInvestmentGoal({ goal: newGoal });
+          toast.success(newGoal ? "Meta salva!" : "Meta removida.");
+          resolve();
+        } catch (error) {
+          console.error(error);
+          toast.error("Não foi possível salvar a meta.");
+          reject(error);
+        }
+      });
+    });
+
+  const progress = goal ? Math.min((investmentsTotal / goal) * 100, 100) : 0;
 
   return (
-    <div className="space-y-6 p-1">
-      {investmentGoal ? (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-          {/* Botão para definir a meta */}
-          <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto">
-            Definir Meta
-          </Button>
+    <div className="flex flex-col items-start gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 shadow-xl shadow-black/20 backdrop-blur-xl sm:flex-row sm:items-center sm:gap-4">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <TargetIcon className="h-5 w-5" />
+      </div>
 
-          {/* Barra de Progresso */}
-          <div className="flex-1 w-full">
-            <p className="text-xs md:text-sm mb-1">
-              Progresso de Investimento: R${" "}
-              {investmentsTotal.toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              / R${" "}
-              {investmentGoal.toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-              })}
+      {goal ? (
+        <div className="w-full flex-1 space-y-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-xs md:text-sm">
+            <p className="font-semibold">Meta de investimento</p>
+            <p className="tabular-nums text-muted-foreground">
+              <span className="font-semibold text-foreground">
+                {formatCurrency(investmentsTotal)}
+              </span>{" "}
+              de {formatCurrency(goal)} · {progress.toFixed(0)}%
             </p>
-            <Progress value={progress} className="w-full" />
           </div>
+          <Progress value={progress} className="h-2 w-full" />
         </div>
       ) : (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-          {/* Botão para definir a meta */}
-          <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto">
-            Definir Meta
-          </Button>
-
-          <p className="text-gray-500 flex-1 text-xs md:text-sm">
-            Defina uma meta de investimento para começar a acompanhar o
-            progresso.
-          </p>
-        </div>
+        <p className="flex-1 text-xs text-muted-foreground md:text-sm">
+          Defina uma meta de investimento para acompanhar o progresso do mês.
+        </p>
       )}
+
+      <Button
+        size="sm"
+        variant={goal ? "outline" : "default"}
+        className="w-full rounded-full sm:w-auto"
+        onClick={() => setDialogOpen(true)}
+      >
+        {goal && <PencilIcon />}
+        {goal ? "Editar meta" : "Definir meta"}
+      </Button>
 
       <SetInvestmentGoalDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onSave={handleSaveGoal}
+        currentGoal={goal}
+        onSave={handleSave}
       />
     </div>
   );

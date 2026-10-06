@@ -175,6 +175,7 @@ export const getDashboard = async (month: string, year: string) => {
     expensesTotal: totalExpenses,
     openInvoicesTotal,
     invoicesIncludedInBalance,
+    investmentGoal: settings.investmentGoal,
     typesPercentage,
     totalExpensePerCategory,
     weeklyTransactions,

@@ -8,7 +8,7 @@ import {
   WalletIcon,
 } from "lucide-react";
 import SummaryCard from "./summaryCard";
-import dynamic from "next/dynamic";
+import InvestmentGoalProgress from "./InvestmentGoalProgress";
 interface SummaryCards {
   month: string;
   balance: number;
@@ -17,14 +17,8 @@ interface SummaryCards {
   expensesTotal: number;
   openInvoicesTotal: number;
   invoicesIncludedInBalance: boolean;
+  investmentGoal: number | null;
 }
-
-const InvestmentGoalProgress = dynamic(
-  () => import("./InvestmentGoalProgress"),
-  {
-    ssr: false,
-  }
-);
 
 const SummaryCards = async ({
   balance,
@@ -33,6 +27,7 @@ const SummaryCards = async ({
   investmentsTotal,
   openInvoicesTotal,
   invoicesIncludedInBalance,
+  investmentGoal,
 }: SummaryCards) => {
   return (
     <div className="space-y-4 md:space-y-6">
@@ -88,7 +83,10 @@ const SummaryCards = async ({
           />
         </Link>
       </div>
-      <InvestmentGoalProgress investmentsTotal={investmentsTotal} />
+      <InvestmentGoalProgress
+        investmentsTotal={investmentsTotal}
+        investmentGoal={investmentGoal}
+      />
     </div>
   );
 };
