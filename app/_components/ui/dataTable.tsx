@@ -29,6 +29,7 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (row, index) => (row as { id?: string }).id ?? String(index),
   });
 
   return (

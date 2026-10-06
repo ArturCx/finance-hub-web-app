@@ -28,6 +28,7 @@ import {
   TransactionPaymentMethod,
 } from "@prisma/client";
 import { useForm } from "react-hook-form";
+import { useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { upsertTransaction } from "../_actions/upsertTransaction";
 import {
@@ -119,6 +120,15 @@ const UpsertTransactionDialog = ({
     defaultValues: formDefaultValues,
   });
 
+  const defaultValuesRef = useRef(formDefaultValues);
+  defaultValuesRef.current = formDefaultValues;
+
+  useEffect(() => {
+    if (isOpen) {
+      form.reset(defaultValuesRef.current);
+    }
+  }, [isOpen, form]);
+
   const isUpdate = Boolean(transactionId);
 
   const onSubmit = async (data: FormSchema) => {
@@ -128,7 +138,6 @@ const UpsertTransactionDialog = ({
         isUpdate ? "Transação atualizada!" : "Transação adicionada!",
       );
       setIsOpen(false);
-      form.reset();
     } catch (error) {
       console.error(error);
       toast.error("Não foi possível salvar a transação.");
@@ -138,12 +147,7 @@ const UpsertTransactionDialog = ({
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(open) => {
-        setIsOpen(open);
-        if (!open) {
-          form.reset(formDefaultValues);
-        }
-      }}
+      onOpenChange={setIsOpen}
     >
       <DialogContent>
         <FormDialogHeader
