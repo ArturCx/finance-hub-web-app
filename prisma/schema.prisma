@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -125,4 +119,35 @@ enum BillPaymentMethod {
   CASH
   PIX
   OTHER
+}
+
+model CreditCard {
+  id            String           @id @default(uuid())
+  name          String
+  color         String           @default("#0097b2")
+  closingDay    Int
+  dueDay        Int
+  limit         Decimal?         @db.Decimal(10, 2)
+  currentAmount Decimal          @default(0) @db.Decimal(10, 2)
+  userId        String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  payments      InvoicePayment[]
+
+  @@index([userId])
+  @@map("credit_cards")
+}
+
+model InvoicePayment {
+  id            String     @id @default(uuid())
+  amount        Decimal    @db.Decimal(10, 2)
+  paidAt        DateTime
+  creditCardId  String
+  creditCard    CreditCard @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+  transactionId String?
+  userId        String
+  createdAt     DateTime   @default(now())
+
+  @@index([userId])
+  @@map("invoice_payments")
 }

@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import {
   ArrowDownUpIcon,
   BitcoinIcon,
+  CreditCardIcon,
   LayoutDashboardIcon,
   MenuIcon,
   ReceiptTextIcon,
@@ -20,8 +21,11 @@ const NAV_LINKS = [
   { label: "Dashboard", path: "/", icon: LayoutDashboardIcon },
   { label: "Transações", path: "/transactions", icon: ArrowDownUpIcon },
   { label: "Contas", path: "/bills", icon: ReceiptTextIcon },
+  { label: "Fatura", path: "/invoices", icon: CreditCardIcon },
   { label: "Crypto", path: "/crypto", icon: BitcoinIcon },
 ];
+
+const PATHS_WITHOUT_PERIOD = ["/crypto", "/invoices"];
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -37,7 +41,9 @@ const Navbar = () => {
   }, [pathname]);
 
   const getHref = (basePath: string) =>
-    basePath === "/crypto" ? basePath : `${basePath}?month=${month}&year=${year}`;
+    PATHS_WITHOUT_PERIOD.includes(basePath)
+      ? basePath
+      : `${basePath}?month=${month}&year=${year}`;
 
   return (
     <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#07090c]/70 backdrop-blur-xl">
