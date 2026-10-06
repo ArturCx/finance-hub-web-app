@@ -15,13 +15,7 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { MoneyInput } from "./moneyInput";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+import { SearchableSelect } from "./ui/searchableSelect";
 import {
   BILL_CATEGORY_OPTIONS,
   BILL_PAYMENT_METHOD_OPTIONS,
@@ -215,24 +209,14 @@ const UpsertBillDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger
-                          className={
-                            field.value ? "text-white" : "text-muted-foreground"
-                          }
-                        >
-                          <SelectValue placeholder="Selecione..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {BILL_CATEGORY_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchableSelect
+                        options={BILL_CATEGORY_OPTIONS}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        searchPlaceholder="Pesquisar categoria..."
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -243,24 +227,14 @@ const UpsertBillDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Método de pagamento</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger
-                          className={
-                            field.value ? "text-white" : "text-muted-foreground"
-                          }
-                        >
-                          <SelectValue placeholder="Selecione..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {BILL_PAYMENT_METHOD_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchableSelect
+                        options={BILL_PAYMENT_METHOD_OPTIONS}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        searchPlaceholder="Pesquisar método..."
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

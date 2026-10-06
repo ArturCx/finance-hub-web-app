@@ -15,13 +15,7 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { MoneyInput } from "./moneyInput";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+import { SearchableSelect } from "./ui/searchableSelect";
 import {
   TRANSACTION_CATEGORY_OPTIONS,
   TRANSACTION_PAYMENT_METHOD_OPTIONS,
@@ -222,24 +216,14 @@ const UpsertTransactionDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger
-                          className={
-                            field.value ? "text-white" : "text-muted-foreground"
-                          }
-                        >
-                          <SelectValue placeholder="Selecione..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {TRANSACTION_CATEGORY_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchableSelect
+                        options={TRANSACTION_CATEGORY_OPTIONS}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        searchPlaceholder="Pesquisar categoria..."
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -250,24 +234,14 @@ const UpsertTransactionDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Método de pagamento</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger
-                          className={
-                            field.value ? "text-white" : "text-muted-foreground"
-                          }
-                        >
-                          <SelectValue placeholder="Selecione..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {TRANSACTION_PAYMENT_METHOD_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchableSelect
+                        options={TRANSACTION_PAYMENT_METHOD_OPTIONS}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        searchPlaceholder="Pesquisar método..."
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
