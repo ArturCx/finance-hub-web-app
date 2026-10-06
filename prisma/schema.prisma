@@ -38,8 +38,8 @@ model Bills {
 }
 
 model Cryptos {
-  id                       String        @id @default(uuid())
-  externalId               String        @unique
+  id                       String           @id @default(uuid())
+  externalId               String           @unique
   name                     String
   image                    String
   currentPrice             Decimal
@@ -47,7 +47,9 @@ model Cryptos {
   marketCap                Decimal
   priceChangePercentage24h Decimal
   totalVolume              Decimal
-  charts                   CryptoCharts? @relation(name: "CryptoChartsToCryptos")
+  charts                   CryptoCharts?    @relation(name: "CryptoChartsToCryptos")
+  trades                   CryptoTrade[]
+  favorites                CryptoFavorite[]
 
   @@map("cryptos")
 }
@@ -196,4 +198,36 @@ model UserSettings {
   updatedAt                DateTime @updatedAt
 
   @@map("user_settings")
+}
+
+model CryptoTrade {
+  id            String          @id @default(uuid())
+  type          CryptoTradeType
+  coinId        String
+  coin          Cryptos         @relation(fields: [coinId], references: [externalId])
+  quantity      Decimal         @db.Decimal(28, 10)
+  price         Decimal         @db.Decimal(18, 2)
+  date          DateTime
+  transactionId String?
+  userId        String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([userId])
+  @@map("crypto_trades")
+}
+
+model CryptoFavorite {
+  userId    String
+  coinId    String
+  coin      Cryptos  @relation(fields: [coinId], references: [externalId])
+  createdAt DateTime @default(now())
+
+  @@id([userId, coinId])
+  @@map("crypto_favorites")
+}
+
+enum CryptoTradeType {
+  BUY
+  SELL
 }

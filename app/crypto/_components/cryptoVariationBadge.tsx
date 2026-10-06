@@ -1,34 +1,29 @@
-import { Badge } from "@/app/_components/ui/badge";
-import { CircleIcon } from "lucide-react";
+import { cn } from "@/app/_lib/utils";
+import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
+import { formatPercent } from "../_lib/format";
 
 interface CryptoVariationBadgeProps {
-  variation: number | null; // Variação percentual em 24h
+  variation: number | null;
+  className?: string;
 }
 
-const CryptoVariationBadge = ({ variation }: CryptoVariationBadgeProps) => {
-  if (variation !== null && variation > 0) {
-    return (
-      <Badge className="font bold bg-main bg-opacity-10 text-main hover:bg-muted">
-        <CircleIcon className="mr-2 fill-main" size={10} />+
-        {variation.toFixed(2)}%
-      </Badge>
-    );
+const CryptoVariationBadge = ({ variation, className }: CryptoVariationBadgeProps) => {
+  if (variation === null || Number.isNaN(variation)) {
+    return <span className="text-xs text-muted-foreground">—</span>;
   }
-
-  if (variation !== null && variation < 0) {
-    return (
-      <Badge className="font bold bg-danger bg-opacity-10 text-danger hover:bg-muted">
-        <CircleIcon className="mr-2 fill-danger" size={10} />
-        {variation.toFixed(2)}%
-      </Badge>
-    );
-  }
-
+  const isUp = variation >= 0;
+  const Icon = isUp ? TrendingUpIcon : TrendingDownIcon;
   return (
-    <Badge className="font bold bg-white bg-opacity-10 text-white hover:bg-muted">
-      <CircleIcon className="mr-2 fill-white" size={10} />
-      Sem variação
-    </Badge>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums",
+        isUp ? "bg-sucess/15 text-sucess" : "bg-danger/15 text-danger",
+        className,
+      )}
+    >
+      <Icon className="h-3 w-3" />
+      {formatPercent(variation)}
+    </span>
   );
 };
 

@@ -22,7 +22,7 @@ const NAV_LINKS = [
   { label: "Transações", path: "/transactions", icon: ArrowDownUpIcon },
   { label: "Contas", path: "/bills", icon: ReceiptTextIcon },
   { label: "Fatura", path: "/invoices", icon: CreditCardIcon },
-  { label: "Crypto", path: "/crypto", icon: BitcoinIcon },
+  { label: "Cripto", path: "/crypto", icon: BitcoinIcon },
 ];
 
 const PATHS_WITHOUT_PERIOD = ["/crypto", "/invoices"];
@@ -39,6 +39,9 @@ const Navbar = () => {
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  const isLinkActive = (path: string) =>
+    path === "/" ? pathname === "/" : pathname.startsWith(path);
 
   const getHref = (basePath: string) =>
     PATHS_WITHOUT_PERIOD.includes(basePath)
@@ -60,7 +63,7 @@ const Navbar = () => {
           </Link>
           <div className="hidden md:flex items-center gap-1 rounded-full border border-white/[0.06] bg-white/[0.02] p-1">
             {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.path;
+              const isActive = isLinkActive(link.path);
               const Icon = link.icon;
               return (
                 <Link
@@ -102,7 +105,7 @@ const Navbar = () => {
         <div className="md:hidden border-t animate-fade-in">
           <div className="flex flex-col px-4 py-2">
             {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.path;
+              const isActive = isLinkActive(link.path);
               const Icon = link.icon;
               return (
                 <Link
