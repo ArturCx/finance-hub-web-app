@@ -19,12 +19,17 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        brand:
+          "relative overflow-hidden rounded-full bg-gradient-to-b from-[#19b8d4] to-primary text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_1px_rgba(0,151,178,0.6),0_8px_20px_-8px_rgba(0,151,178,0.8)] before:pointer-events-none before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/25 before:to-transparent before:transition-transform before:duration-700 hover:brightness-110 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_0_0_1px_rgba(0,151,178,0.8),0_10px_28px_-8px_rgba(0,151,178,0.95)] hover:before:translate-x-full",
+        dangerSoft:
+          "rounded-full border border-danger/25 bg-danger/[0.08] text-danger hover:border-danger/45 hover:bg-danger/15",
       },
       size: {
         default: "h-10 rounded-lg px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-11 rounded-lg px-8",
         icon: "h-9 w-9",
+        pill: "h-9 rounded-full pl-1.5 pr-4 text-[13px]",
       },
     },
     defaultVariants: {
@@ -54,4 +59,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-export { Button, buttonVariants };
+const ButtonIconChip = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span
+    className={cn(
+      "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 ring-1 ring-inset ring-white/30 [&_svg]:size-3.5",
+      className
+    )}
+    {...props}
+  />
+);
+
+export { Button, ButtonIconChip, buttonVariants };

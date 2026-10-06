@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowDownUpIcon } from "lucide-react";
-import { Button } from "./ui/button";
+import { PlusIcon } from "lucide-react";
+import { Button, ButtonIconChip } from "./ui/button";
 import { useState } from "react";
 import UpsertTransactionDialog from "./upsertTransactionDialog";
 
@@ -10,13 +10,12 @@ const AddTransactionButton = () => {
 
   return (
     <>
-      <Button
-        className="rounded-full font-bold"
-        onClick={() => setDialogIsOpen(true)}
-      >
-        <span className="hidden sm:inline">Adicionar transação</span>
-        <span className="sm:hidden">Adicionar</span>
-        <ArrowDownUpIcon />
+      <Button variant="brand" size="pill" onClick={() => setDialogIsOpen(true)}>
+        <ButtonIconChip>
+          <PlusIcon />
+        </ButtonIconChip>
+        <span className="hidden sm:inline">Nova transação</span>
+        <span className="sm:hidden">Nova</span>
       </Button>
       <UpsertTransactionDialog
         isOpen={dialogIsOpen}

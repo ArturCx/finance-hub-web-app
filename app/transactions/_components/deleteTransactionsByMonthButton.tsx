@@ -50,12 +50,18 @@ const DeleteTransactionsByMonthButton = ({
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button
-          variant="destructive"
-          className="rounded-full font-bold"
+          variant="dangerSoft"
+          size="sm"
+          className="h-9 gap-2 rounded-full px-3.5 text-[13px]"
           disabled={isPending || totalCount === 0}
         >
-          <span className="sm:hidden">Deletar</span>
           <Trash2Icon />
+          <span>Limpar mês</span>
+          {totalCount > 0 && (
+            <span className="rounded-full bg-danger/20 px-1.5 py-px text-[11px] tabular-nums">
+              {totalCount}
+            </span>
+          )}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -70,7 +76,10 @@ const DeleteTransactionsByMonthButton = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirmDeleteClick}>
+          <AlertDialogAction
+            onClick={handleConfirmDeleteClick}
+            className="bg-danger text-white hover:bg-danger/90"
+          >
             {isPending ? "Excluindo..." : "Confirmar exclusão"}
           </AlertDialogAction>
         </AlertDialogFooter>

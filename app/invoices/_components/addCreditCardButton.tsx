@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/app/_components/ui/button";
+import { Button, ButtonIconChip } from "@/app/_components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import UpsertCreditCardDialog from "./upsertCreditCardDialog";
@@ -10,13 +10,12 @@ const AddCreditCardButton = () => {
 
   return (
     <>
-      <Button
-        className="rounded-full font-bold"
-        onClick={() => setDialogIsOpen(true)}
-      >
-        <PlusIcon />
-        <span className="hidden sm:inline">Adicionar cartão</span>
-        <span className="sm:hidden">Adicionar</span>
+      <Button variant="brand" size="pill" onClick={() => setDialogIsOpen(true)}>
+        <ButtonIconChip>
+          <PlusIcon />
+        </ButtonIconChip>
+        <span className="hidden sm:inline">Novo cartão</span>
+        <span className="sm:hidden">Novo</span>
       </Button>
       <UpsertCreditCardDialog
         isOpen={dialogIsOpen}

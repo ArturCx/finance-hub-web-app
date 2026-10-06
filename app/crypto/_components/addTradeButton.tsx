@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, ButtonProps } from "@/app/_components/ui/button";
+import { Button, ButtonIconChip, ButtonProps } from "@/app/_components/ui/button";
 import { CryptoTradeType } from "@prisma/client";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
@@ -22,17 +22,27 @@ const AddTradeButton = ({
   defaultType,
   label = "Registrar operação",
   className,
+  variant,
   ...buttonProps
 }: AddTradeButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const isBrand = !variant;
   return (
     <>
       <Button
-        className={className ?? "rounded-full font-bold"}
+        variant={variant ?? "brand"}
+        size={isBrand ? "pill" : undefined}
+        className={className}
         onClick={() => setIsOpen(true)}
         {...buttonProps}
       >
-        <PlusIcon />
+        {isBrand ? (
+          <ButtonIconChip>
+            <PlusIcon />
+          </ButtonIconChip>
+        ) : (
+          <PlusIcon />
+        )}
         {label}
       </Button>
       <TradeDialog
