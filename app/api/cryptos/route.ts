@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db as prisma } from "@/app/_lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 interface Params {
   page: number;
   limit: number;

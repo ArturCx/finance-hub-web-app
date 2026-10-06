@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { getResolvedMonthYear } from "@/app/_utils/monthYearFilter";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   ArrowDownUpIcon,
   BitcoinIcon,
@@ -27,7 +27,7 @@ const NAV_LINKS = [
 
 const PATHS_WITHOUT_PERIOD = ["/crypto", "/invoices"];
 
-const Navbar = () => {
+const NavbarContent = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -128,5 +128,15 @@ const Navbar = () => {
     </nav>
   );
 };
+
+const NavbarFallback = () => (
+  <nav className="sticky top-0 z-50 h-[57px] border-b border-white/[0.06] bg-[#07090c]/70 backdrop-blur-xl md:h-[73px]" />
+);
+
+const Navbar = () => (
+  <Suspense fallback={<NavbarFallback />}>
+    <NavbarContent />
+  </Suspense>
+);
 
 export default Navbar;
