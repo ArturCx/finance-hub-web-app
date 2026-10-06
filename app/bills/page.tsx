@@ -1,10 +1,10 @@
 import Navbar from "../_components/navbar";
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import AddBillButton from "../_components/addBillButton";
 import { ScrollArea } from "../_components/ui/scroll-area";
 import { DataTable } from "../_components/ui/dataTable";
 import { billColumns } from "./_columns";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import AddBillButton from "../_components/addBillButton";
 import { db } from "../_lib/prisma";
 import {
   getMonthDateRange,
@@ -14,6 +14,7 @@ import {
 } from "../_utils/monthYearFilter";
 import DeleteBillsByMonthButton from "./_components/deleteBillsByMonthButton";
 import PageHeader from "../_components/pageHeader";
+import BillsMobileList from "./_components/billsMobileList";
 import { ReceiptTextIcon } from "lucide-react";
 
 interface BillsPageProps {
@@ -58,7 +59,7 @@ const BillsPage = async ({ searchParams: { month, year } }: BillsPageProps) => {
   return (
     <>
       <Navbar />
-      <div className="space-y-4 md:space-y-6 p-4 md:p-6 flex flex-1 min-h-0 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col space-y-4 overflow-y-auto p-4 md:space-y-6 md:overflow-hidden md:p-6">
         <PageHeader
           title="Contas"
           description="Contas a pagar e seus vencimentos no mês."
@@ -71,7 +72,10 @@ const BillsPage = async ({ searchParams: { month, year } }: BillsPageProps) => {
             totalCount={bills.length}
           />
         </PageHeader>
-        <ScrollArea className="h-full animate-fade-in-up animation-delay-100">
+        <div className="animate-fade-in-up animation-delay-100 md:hidden">
+          <BillsMobileList bills={JSON.parse(JSON.stringify(bills))} />
+        </div>
+        <ScrollArea className="hidden h-full animate-fade-in-up animation-delay-100 md:block">
           <DataTable
             columns={billColumns}
             data={JSON.parse(JSON.stringify(bills))}

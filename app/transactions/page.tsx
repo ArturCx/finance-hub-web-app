@@ -1,11 +1,11 @@
 import { db } from "../_lib/prisma";
 import { DataTable } from "../_components/ui/dataTable";
 import { transactionColumns } from "./_columns";
+import { ScrollArea } from "@/app/_components/ui/scroll-area";
 import AddTransactionButton from "../_components/addTransactionButton";
 import Navbar from "../_components/navbar";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ScrollArea } from "@/app/_components/ui/scroll-area";
 import {
   getMonthDateRange,
   getResolvedMonthYear,
@@ -14,6 +14,7 @@ import {
 } from "../_utils/monthYearFilter";
 import DeleteTransactionsByMonthButton from "./_components/deleteTransactionsByMonthButton";
 import PageHeader from "../_components/pageHeader";
+import TransactionsMobileList from "./_components/transactionsMobileList";
 import { ArrowDownUpIcon } from "lucide-react";
 
 interface TransactionsPageProps {
@@ -59,7 +60,7 @@ const TransactionsPage = async ({
   return (
     <>
       <Navbar />
-      <div className="space-y-4 md:space-y-6 p-4 md:p-6 flex flex-1 min-h-0 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col space-y-4 overflow-y-auto p-4 md:space-y-6 md:overflow-hidden md:p-6">
         <PageHeader
           title="Transações"
           description="Todas as entradas, saídas e investimentos do mês."
@@ -72,7 +73,10 @@ const TransactionsPage = async ({
             totalCount={transactions.length}
           />
         </PageHeader>
-        <ScrollArea className="h-full animate-fade-in-up animation-delay-100">
+        <div className="animate-fade-in-up animation-delay-100 md:hidden">
+          <TransactionsMobileList transactions={JSON.parse(JSON.stringify(transactions))} />
+        </div>
+        <ScrollArea className="hidden h-full animate-fade-in-up animation-delay-100 md:block">
           <DataTable
             columns={transactionColumns}
             data={JSON.parse(JSON.stringify(transactions))}
