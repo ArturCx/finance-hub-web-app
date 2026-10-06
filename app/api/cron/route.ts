@@ -1,105 +1,156 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/_lib/prisma";
+import {
+  isStale,
+  mergeDailyPoint,
+  SeriesPoint,
+  toSeries,
+} from "@/app/crypto/_lib/history";
 
 export const revalidate = 0;
+export const maxDuration = 60;
 
-const prisma = db;
-const delay = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-const maxRequestsPerMinute = 30;
-const requestInterval = Math.ceil((60 / maxRequestsPerMinute) * 1000);
+const MARKETS_URL =
+  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=brl&order=market_cap_desc&per_page=200&precision=2";
+const marketChartUrl = (id: string) =>
+  `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=brl&days=365&interval=daily&precision=2`;
 
-const marketChartBaseUrl =
-  "https://api.coingecko.com/api/v3/coins/{id}/market_chart?vs_currency=brl&days=365&precision=1";
-const marketOptions = {
-  method: "GET",
-  headers: {
-    accept: "application/json",
-    "x-cg-demo-api-key": process.env.GECKO_API_KEY ?? "",
-  },
+const BACKFILL_PER_RUN = 15;
+const BACKFILL_INTERVAL_MS = 700;
+const WRITE_CONCURRENCY = 10;
+
+interface MarketCoin {
+  id: string;
+  name: string;
+  image: string;
+  current_price: number | null;
+  market_cap_rank: number | null;
+  market_cap: number | null;
+  price_change_percentage_24h: number | null;
+  total_volume: number | null;
+}
+
+const geckoHeaders = {
+  accept: "application/json",
+  "x-cg-demo-api-key": process.env.GECKO_API_KEY ?? "",
+};
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const inChunks = async <T>(items: T[], size: number, task: (item: T) => Promise<unknown>) => {
+  for (let index = 0; index < items.length; index += size) {
+    await Promise.all(items.slice(index, index + size).map(task));
+  }
 };
 
 export async function GET(req: NextRequest) {
-  const url =
-    "https://api.coingecko.com/api/v3/coins/markets?vs_currency=brl&order=market_cap_desc&per_page=200&precision=2";
-
-  const options = {
-    method: "GET",
-    headers: {
-      accept: "application/json",
-      "x-cg-demo-api-key": process.env.GECKO_API_KEY ?? "",
-    },
-  };
+  const secret = process.env.CRON_SECRET;
+  if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
 
   try {
-    const response = await fetch(url, options);
-    const data = await response.json();
+    const response = await fetch(MARKETS_URL, { headers: geckoHeaders, cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`CoinGecko markets respondeu ${response.status}`);
+    }
+    const coins: MarketCoin[] = (await response.json()).filter(
+      (coin: MarketCoin) => coin.current_price !== null,
+    );
 
-    for (const crypto of data) {
-      await prisma.cryptos.upsert({
-        where: { externalId: crypto.id },
-        create: {
-          externalId: crypto.id,
-          name: crypto.name,
-          image: crypto.image,
-          currentPrice: crypto.current_price,
-          marketCapRank: crypto.market_cap_rank,
-          marketCap: crypto.market_cap,
-          priceChangePercentage24h: crypto.price_change_percentage_24h,
-          totalVolume: crypto.total_volume,
-        },
-        update: {
-          name: crypto.name,
-          image: crypto.image,
-          currentPrice: crypto.current_price,
-          marketCapRank: crypto.market_cap_rank,
-          marketCap: crypto.market_cap,
-          priceChangePercentage24h: crypto.price_change_percentage_24h,
-          totalVolume: crypto.total_volume,
+    await inChunks(coins, WRITE_CONCURRENCY, (coin) => {
+      const data = {
+        name: coin.name,
+        image: coin.image,
+        currentPrice: coin.current_price ?? 0,
+        marketCapRank: coin.market_cap_rank ?? 0,
+        marketCap: coin.market_cap ?? 0,
+        priceChangePercentage24h: coin.price_change_percentage_24h ?? 0,
+        totalVolume: coin.total_volume ?? 0,
+      };
+      return db.cryptos.upsert({
+        where: { externalId: coin.id },
+        create: { externalId: coin.id, ...data },
+        update: data,
+      });
+    });
+
+    await db.cryptos.updateMany({
+      where: { externalId: { notIn: coins.map((coin) => coin.id) } },
+      data: { marketCapRank: 0 },
+    });
+
+    const now = Date.now();
+    const charts = await db.cryptoCharts.findMany({
+      where: { externalId: { in: coins.map((coin) => coin.id) } },
+      select: { externalId: true, prices: true, marketCaps: true, totalVolumes: true },
+    });
+    const chartsById = new Map(charts.map((chart) => [chart.externalId, chart]));
+
+    const stale: MarketCoin[] = [];
+    const fresh: MarketCoin[] = [];
+    for (const coin of coins) {
+      const chart = chartsById.get(coin.id);
+      if (!chart || isStale(toSeries(chart.prices), now)) {
+        stale.push(coin);
+      } else {
+        fresh.push(coin);
+      }
+    }
+
+    await inChunks(fresh, WRITE_CONCURRENCY, (coin) => {
+      const chart = chartsById.get(coin.id)!;
+      return db.cryptoCharts.update({
+        where: { externalId: coin.id },
+        data: {
+          prices: mergeDailyPoint(toSeries(chart.prices), now, coin.current_price ?? 0),
+          marketCaps: mergeDailyPoint(toSeries(chart.marketCaps), now, coin.market_cap ?? 0),
+          totalVolumes: mergeDailyPoint(toSeries(chart.totalVolumes), now, coin.total_volume ?? 0),
         },
       });
+    });
 
-      const marketChartUrl = marketChartBaseUrl.replace("{id}", crypto.id);
+    const backfilled: string[] = [];
+    for (const coin of stale.slice(0, BACKFILL_PER_RUN)) {
       try {
-        const marketChartResponse = await fetch(marketChartUrl, marketOptions);
-        const marketChartData = await marketChartResponse.json();
-
-        if (marketChartData.prices) {
-          await prisma.cryptoCharts.upsert({
-            where: { externalId: crypto.id },
-            create: {
-              externalId: crypto.id,
-              prices: marketChartData.prices,
-              marketCaps: marketChartData.market_caps,
-              totalVolumes: marketChartData.total_volumes,
-            },
-            update: {
-              prices: marketChartData.prices,
-              marketCaps: marketChartData.market_caps,
-              totalVolumes: marketChartData.total_volumes,
-            },
-          });
-        }
-      } catch (chartError) {
-        console.error(
-          `Failed to fetch market chart for ${crypto.id}:`,
-          chartError
-        );
+        const chartResponse = await fetch(marketChartUrl(coin.id), {
+          headers: geckoHeaders,
+          cache: "no-store",
+        });
+        if (chartResponse.status === 429) break;
+        if (!chartResponse.ok) continue;
+        const chart = await chartResponse.json();
+        const prices: SeriesPoint[] = toSeries(chart.prices);
+        if (prices.length === 0) continue;
+        const data = {
+          prices,
+          marketCaps: toSeries(chart.market_caps),
+          totalVolumes: toSeries(chart.total_volumes),
+        };
+        await db.cryptoCharts.upsert({
+          where: { externalId: coin.id },
+          create: { externalId: coin.id, ...data },
+          update: data,
+        });
+        backfilled.push(coin.id);
+      } catch (error) {
+        console.error(`Falha ao buscar o histórico de ${coin.id}:`, error);
       }
-
-      await delay(requestInterval);
+      await delay(BACKFILL_INTERVAL_MS);
     }
 
     return NextResponse.json({
-      message: "Database and market charts updated successfully",
+      message: "Dados de cripto atualizados",
+      coins: coins.length,
+      appended: fresh.length,
+      backfilled: backfilled.length,
+      pendingBackfill: stale.length - backfilled.length,
     });
-  } catch (err) {
-    console.error("Error updating database:", err);
+  } catch (error) {
+    console.error("Erro ao atualizar dados de cripto:", error);
     return NextResponse.json(
-      { message: "Failed to update database", error: err },
-      { status: 500 }
+      { message: "Falha ao atualizar dados de cripto" },
+      { status: 500 },
     );
   }
 }

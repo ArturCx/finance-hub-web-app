@@ -9,6 +9,7 @@ export interface CoinOption {
 
 export const getCoinOptions = async (): Promise<CoinOption[]> => {
   const coins = await db.cryptos.findMany({
+    where: { OR: [{ marketCapRank: { gt: 0 } }, { trades: { some: {} } }] },
     orderBy: { marketCapRank: "asc" },
     select: { externalId: true, name: true, image: true, currentPrice: true },
   });

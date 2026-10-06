@@ -56,14 +56,15 @@ const toMover = (
 });
 
 export const getMarket = async (userId: string, query: string, page: number) => {
-  const where: Prisma.CryptosWhereInput = query
-    ? {
-        OR: [
-          { name: { contains: query, mode: "insensitive" } },
-          { externalId: { contains: query, mode: "insensitive" } },
-        ],
-      }
-    : {};
+  const where: Prisma.CryptosWhereInput = {
+    marketCapRank: { gt: 0 },
+    ...(query && {
+      OR: [
+        { name: { contains: query, mode: "insensitive" } },
+        { externalId: { contains: query, mode: "insensitive" } },
+      ],
+    }),
+  };
   const topCoins: Prisma.CryptosWhereInput = { marketCapRank: { lte: 100, gt: 0 } };
 
   const [favorites, coins, total, gainers, losers] = await Promise.all([
