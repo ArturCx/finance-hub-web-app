@@ -52,7 +52,6 @@ offers a full **crypto section** with portfolio tracking, market data and an inv
 - Dialogs with type/status cards and **searchable selects** for category and payment method.
 - Instant search by name, type or status, category, payment method, amount or date.
 - Tables on desktop and a card list (grouped by day) on mobile.
-- Daily email reminders for bills due soon (Resend + Vercel Cron).
 
 ### Credit card invoices
 - Register multiple cards with color, closing day, due day and optional limit.
@@ -100,7 +99,6 @@ offers a full **crypto section** with portfolio tracking, market data and an inv
 | **Forms & validation** | [React Hook Form](https://react-hook-form.com) · [Zod](https://zod.dev) |
 | **Tables** | [TanStack Table](https://tanstack.com/table) |
 | **External data** | [CoinGecko API](https://www.coingecko.com/en/api) |
-| **Email** | [Resend](https://resend.com) |
 | **Deployment** | [Vercel](https://vercel.com) (with scheduled Cron Jobs) |
 
 ## Architecture
@@ -114,17 +112,18 @@ Browser (React components)
         │
 Next.js server  ──  Server Components + Server Actions + Route Handlers   ← backend layer
         │
-Prisma  ──  PostgreSQL          + external APIs (Groq, CoinGecko, Resend)
+Prisma  ──  PostgreSQL          + external APIs (Groq, CoinGecko)
 ```
 
 - **Server Components** load page data directly from the database, in parallel.
 - **Server Actions** (`"use server"`) handle mutations: transactions, bills, credit cards and
   invoice payments, crypto trades and favorites, user settings and AI reports.
-- **Route Handlers** (`app/api/*`) expose HTTP endpoints, including the scheduled cron jobs.
+- **Route Handlers** (`app/api/*`) expose HTTP endpoints, including the scheduled cron job.
 - **Prisma** models `Transaction`, `Bills`, `CreditCard`, `InvoicePayment`, `UserSettings`,
   `CryptoTrade`, `CryptoFavorite`, `Cryptos` and `CryptoCharts`.
-- **Vercel Cron Jobs** refresh crypto market data and one year of daily prices (`/api/cron`) and
-  send bill reminder emails (`/api/send`) every day.
+- A **Vercel Cron Job** (`/api/cron`) refreshes crypto prices every day with a single CoinGecko
+  call, appends the daily price to the stored history and backfills missing histories in batches.
+  It is protected by `CRON_SECRET`.
 
 ## Getting Started
 
@@ -142,7 +141,7 @@ Prisma  ──  PostgreSQL          + external APIs (Groq, CoinGecko, Resend)
    | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | Clerk application keys |
    | `GROQ_API_KEY` | Groq API key for the AI report |
    | `GECKO_API_KEY` | CoinGecko demo API key |
-   | `RESEND_API_KEY` | Resend API key for bill reminders |
+   | `CRON_SECRET` | Secret sent by Vercel Cron in the `Authorization` header |
 
 3. Apply the database migrations:
    ```bash
